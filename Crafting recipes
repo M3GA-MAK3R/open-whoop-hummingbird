@@ -1,0 +1,49 @@
+Awesome! I see the repository is officially live and populated with the structural baseline. Having this central hub setup lets your research team systematically isolate layout challenges.
+Since we have the root README.md locked in, let’s tackle the initial physical definition for Track B (Modular Micro-Stack). To establish this layout, we need to account for space and signal pin assignments across a 3-layer sandwich stack.
+Here is a comprehensive breakdown of the layer mappings, pin allocations, and physical clearance parameters to push straight into your new repo.
+
+1. Physical Dimensions & Mechanical Budget
+
+Micro-whoops live and die by mechanical packaging constraints. For a sub-20g build, you must define the following clearance profiles:
+• Mounting Pattern: Standardized 16mm x 16mm with M2 through-holes.
+• Stack Vertical Height: Maximum 11mm total height (including rubber anti-vibration grommets) to fit comfortably beneath a micro injection-molded or 3D-printed canopy.
+• Inter-layer Spacing: 3.5mm nylon or TPU spacers between boards to ensure adequate airflow and prevent surface components from rubbing against adjacent PCB layers.
+
+2. The Three-Layer Pinout Architecture
+
+Because we are discarding bulky plastic pin headers to save weight, all interconnects between these layers will be jumped using short, direct-solder lengths of ultra-flexible 30AWG silicone wire.
+Show Code
+
+▲ TOP:    [ Layer 3: OpenRX + Analog VTX Combo ]
+              │  (Power, Ground, SmartAudio, RX/TX UART)
+■ MIDDLE: [ Layer 2: OpenFC Micro (Flight Controller) ]
+              │  (Power, Ground, 4x PWM Motor Drive Signals)
+▼ BOTTOM: [ Layer 1: OpenESC Micro (4-in-1 Speed Controller) ] ◄── Battery 1S Input
+
+
+3. Comprehensive Pin Assignment Breakdown
+
+
+Layer 1 (Bottom): OpenESC Micro (4-in-1 Speed Controller)
+
+This board interfaces directly with the high-current 1S battery source and distributes clean, regulated voltage to the rest of the stack.
+• Primary Power Pads: Heavy-duty, exposed tinned copper pads for soldering the main BT2.0 / NX69 battery pigtail (1S LiPo input: 3.0V – 4.4V).
+• Power Distribution Bus: Outbound micro solder pads providing continuous 5V @ 1.5A Regulated DC to power the upper flight controller layer.
+• Signal Input Pads: A linear 4-pad row mapping motor control inputs directly from the FC outputs: M1_PWM, M2_PWM, M3_PWM, M4_PWM.
+• Motor Output Pads: Three separate, wide-trace solder pads on each corner of the board (Phase_A, Phase_B, Phase_C) for direct connection to the brushless motor windings, completely eliminating heavy plastic JST plugs.
+
+Layer 2 (Middle): OpenFC Micro (Flight Computer)
+
+The central intelligence unit processing tracking telemetry and stabilization loops.
+• Power Input Bus: Inbound 5V and GND pads tied straight to the Layer 1 regulator output.
+• Actuator Control Pads: Outbound M1, M2, M3, and M4 control pads positioned natively on the perimeter to minimize wiring distances down to Layer 1.
+• Receiver Telemetry Port (UART 1): Dedicated serial link routing to the OpenRX module: 5V, GND, TX1 (Telemetry), and RX1 (Control Data).
+• Video Peripheral Port (UART 2): Dedicated serial port for camera OSD configurations and video control: 5V, GND, TX2 (SmartAudio protocol for changing VTX power/channels via radio), and CAM_IN (analog video signal feed).
+• Video Processing Core: An onboard MAX7456 OSD chip routing a clean, telemetry-overlaid video signal out via a dedicated VTX_OUT pad.
+
+Layer 3 (Top): OpenRX-ELRS & Analog VTX Module
+
+Combining the radio frequency elements on the top layer isolates sensitive wireless links from the switching magnetic noise of the bottom layer's ESC FETs.
+• ExpressLRS Receiver Node: Uses basic 5V, GND, TX, and RX pads running CRSF protocol data down into the Layer 2 UART 1 hub.
+• Analog Video Transmitter Node: Powered by either raw battery voltage or 5V (depending on whether you select a high-output 400mW VTX core). It includes GND, SmartAudio (wired to Layer 2's TX2), and VIDEO_IN (wired to Layer 2's VTX_OUT).
+Should we draft the step-by-step layout configuration guide for this stack to document it in the /docs/assembly/ folder, or would you prefer to build out the LCSC active component part numbers for the /docs/bom/ database so your R&D team can start assigning components in EasyEDA? Let me know which file to generate next!
